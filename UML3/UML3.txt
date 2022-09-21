@@ -1,0 +1,83 @@
+CREATE TABLE IF NOT EXISTS public.product
+(
+    product_id bigserial NOT NULL,
+    description character varying(50) NOT NULL,
+    price numeric (20,2) NOT NULL
+);
+
+INSERT INTO public.product(description,price)
+VALUES ('Coke',12.33),
+('Barone',8.33),
+('Niknaks',5.23),
+('Icecream',23.22);
+SELECT * FROM public.product;
+
+CREATE TABLE IF NOT EXISTS public.cart
+(
+    product_id bigint PRIMARY KEY NOT NULL,
+    quantity bigint NOT NULL CHECK (quantity > -1)
+);
+
+INSERT INTO public.cart(product_id,quantity)
+VALUES(1, 10), (2, 10), (3, 10); 
+
+SELECT description, quantity, price, quantity*price AS subtotal FROM cart
+INNER JOIN product ON cart.product_id = product.product_id;
+
+INSERT INTO cart (product_id,quantity)
+SELECT 3,1
+WHERE NOT EXISTS (
+SELECT 1 FROM cart WHERE product_id=3);
+
+SELECT description, quantity, price, quantity*price AS subtotal FROM cart
+INNER JOIN product ON cart.product_id = product.product_id;
+
+--add
+UPDATE public.cart SET cart.quantity = cart.quantity+1
+WHERE EXISTS (SELECT * FROM cart c WHERE c.product_id=3) AND cart.product_id=3;
+
+--remove
+UPDATE public.cart SET cart.quantity = cart.quantity-1
+WHERE EXISTS (SELECT * FROM cart c WHERE c.product_id=2) AND cart.product_id=2;
+
+SELECT description, quantity, price, quantity * price AS subtotal FROM cart
+ INNER JOIN product ON cart.product_id = product.product_id;
+
+--manually insert data
+INSERT INTO public.cart(product_id,quantity)
+SELECT 2,5
+
+--display bought items
+SELECT description, quantity, price, quantity*price AS subtotal FROM cart
+INNER JOIN product ON cart.product_id = product.product_id
+WHERE cart.quantity>0;
+
+--removes bought items
+UPDATE cart SET cart.quantity = cart.quantity - 1
+WHERE EXISTS (SELECT 1 FROM cart c WHERE c.product_id=2) AND cart.product_id=2;
+
+
+UPDATE cart SET cart.quantity=0
+WHERE cart.quantity = -1;
+
+DELETE FROM public.cart WHERE cart.quantity = 5;
+SELECT description, quantity, price, quantity * price AS subtotal FROM cart
+ INNER JOIN product ON cart.product_id = product.product_id;
+
+SELECT * FROM public.cart;
+
+--display bought items
+SELECT description, quantity, price, quantity*price AS subtotal FROM cart
+INNER JOIN product ON cart.product_id = product.product_id
+WHERE cart.quantity>0;
+
+--checkout
+SELECT SUM(cart.quantity*product.price) AS grandtotal
+FROM cart
+INNER JOIN product ON product.product_id = cart.product_id;
+
+SELECT * FROM public.cart;
+DELETE public.cart;
+
+--find results
+SELECT 1 FROM cart WHERE product_id=2;  
